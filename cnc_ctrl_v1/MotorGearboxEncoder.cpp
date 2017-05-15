@@ -114,8 +114,8 @@ void  MotorGearboxEncoder::computePID(){
     }
     
     if(_motorName[0] == 'R'){
-        //Serial.print(_currentSpeed);
-        //Serial.print(" ");
+        Serial.print(_currentSpeed);
+        Serial.print(" ");
         Serial.println(_targetSpeed);
     }
     
