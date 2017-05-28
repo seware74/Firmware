@@ -116,6 +116,8 @@ void  Kinematics::inverse(float xTarget,float yTarget, float* aChainLength, floa
 
 
         //solve for the next guess
+        Serial.println("original Jac");
+        Serial.println(Jac[0]);
         _MatSolv();     // solves the matrix equation Jx=-Criterion
 
         // update the variables with the new estimate
@@ -235,7 +237,9 @@ void  Kinematics::_MatSolv(){
     float fact;
 
     // gaus elimination, no pivot
-
+    Serial.println("Jac: ");
+    Serial.println(Jac[0]);
+    
     N = 3;
     NN = N-1;
     for (i=1;i<=NN;i++){
@@ -254,7 +258,7 @@ void  Kinematics::_MatSolv(){
     }
 
 //Lower triangular matrix solver
-
+    
     Solution[0] =  Crit[0]/Jac[0];
     ii = N-1;
     for (i=2;i<=N;i++){
@@ -288,7 +292,10 @@ float Kinematics::_moment(float Y1Plus, float Y2Plus, float Phi, float MSinPhi, 
     Offsety2 = h * MSinPsi2;
     TanGamma = (y - Offsety1 + Y1Plus)/(x - Offsetx1);
     TanLambda = (y - Offsety2 + Y2Plus)/(D -(x + Offsetx2));
-
+    
+    Serial.println("Moment returns: ");
+    Serial.println(h3*MSinPhi + (h/(TanLambda+TanGamma))*(MSinPsi2 - MSinPsi1 + (TanGamma*MCosPsi1 - TanLambda * MCosPsi2)));
+    
     return h3*MSinPhi + (h/(TanLambda+TanGamma))*(MSinPsi2 - MSinPsi1 + (TanGamma*MCosPsi1 - TanLambda * MCosPsi2));
 }
 

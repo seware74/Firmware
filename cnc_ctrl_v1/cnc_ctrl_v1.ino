@@ -19,6 +19,18 @@
 void setup(){
     Serial.begin(57600);
     
+    delay(1000);
+    
+    Serial.println("Begin test:");
+    
+    float leftChain;
+    float rightChain;
+    kinematics.inverse(0,0,&leftChain,&rightChain);
+    
+    while(1){
+        delay(10);
+    }
+    
     kinematics.forward(leftAxis.read(), rightAxis.read(), &xTarget, &yTarget);
     
     Serial.println("ready");
