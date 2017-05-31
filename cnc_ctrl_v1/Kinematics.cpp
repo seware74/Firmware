@@ -60,7 +60,13 @@ void  Kinematics::inverse(float xTarget,float yTarget, float* aChainLength, floa
     //coordinate shift to put (0,0) in the center of the plywood from the left sprocket
     x = (D/2.0) + xTarget;
     y = (machineHeight/2.0) + motorOffsetY  - yTarget;
-
+    
+    Serial.println("begin inverse: ");
+    Serial.print("x: ");
+    Serial.println(x);
+    Serial.print("y: ");
+    Serial.println(y);
+    
     //Coordinates definition:
     //         x -->, y |
     //                  v
@@ -75,20 +81,41 @@ void  Kinematics::inverse(float xTarget,float yTarget, float* aChainLength, floa
     else{
         Mirror = false;
     }
-
+    
+    Serial.println("after mirror: ");
+    Serial.print("Mirror: ");
+    Serial.println(Mirror);
+    Serial.print("x: ");
+    Serial.println(x);
+    
     TanGamma = y/x;
     TanLambda = y/(D-x);
     Y1Plus = R * sqrt(1 + TanGamma * TanGamma);
     Y2Plus = R * sqrt(1 + TanLambda * TanLambda);
-
+    
+    Serial.println("after TanGamma thing: ");
+    Serial.print("TanGamma ");
+    Serial.println(TanGamma);
+    Serial.print("TanLambda ");
+    Serial.println(TanLambda);
+    Serial.print("Y1Plus ");
+    Serial.println(Y1Plus);
+    Serial.print("Y2Plus ");
+    Serial.println(Y2Plus);
+    
+    
     _MyTrig();
                                              //These criteria will be zero when the correct values are reached
                                              //They are negated here as a numerical efficiency expedient
 
-    Crit[0]=  - _moment(Y1Plus, Y2Plus, Phi, MySinPhi, SinPsi1, CosPsi1, SinPsi2, CosPsi2);
+    Crit[0] = - _moment(Y1Plus, Y2Plus, Phi, MySinPhi, SinPsi1, CosPsi1, SinPsi2, CosPsi2);
     Crit[1] = - _YOffsetEqn(Y1Plus, x - h * CosPsi1, SinPsi1);
     Crit[2] = - _YOffsetEqn(Y2Plus, D - (x + h * CosPsi2), SinPsi2);
-
+    
+    Serial.println("\n\n block zebra:");
+    Serial.print("Crit[0] "); Serial.println(Crit[0]*1000.0);
+    Serial.print("Crit[1] "); Serial.println(Crit[1]*1000.0);
+    Serial.print("Crit[2] "); Serial.println(Crit[2]*1000.0);
 
     while (Tries <= MaxTries) {
         if (abs(Crit[0]) < MaxError) {
@@ -267,6 +294,9 @@ void  Kinematics::_MatSolv(){
         for (J=1;J<=M;J++){
             Sum = Sum-Jac[ii+J]*Solution[J-1];
         }
+    Serial.println("Thas: ");
+    Serial.println(ii+i);
+    Serial.println(Sum/Jac[ii+i]);
     Solution[i-1] = Sum/Jac[ii+i];
     ii = ii + N;
     }
@@ -282,16 +312,43 @@ float Kinematics::_moment(float Y1Plus, float Y2Plus, float Phi, float MSinPhi, 
     float Psi2;
     float TanGamma;
     float TanLambda;
-
+    
+    Serial.println("\n begin _moment");
+    
+    Serial.println("called with: ");
+    Serial.print("Y1Plus "); Serial.println(Y1Plus*1000.0);
+    Serial.print("Y2Plus "); Serial.println(Y2Plus*1000.0);
+    Serial.print("Phi "); Serial.println(Phi*1000.0);
+    Serial.print("MSinPhi "); Serial.println(MSinPhi*1000.0);
+    Serial.print("MSinPsi1 "); Serial.println(MSinPsi1*1000.0);
+    Serial.print("MCosPsi1 "); Serial.println(MCosPsi1*1000.0);
+    Serial.print("MSinPsi2 "); Serial.println(MSinPsi2*1000.0);
+    Serial.print("MCosPsi2 "); Serial.println(MCosPsi2*1000.0);
+    
     Psi1 = Theta - Phi;
     Psi2 = Theta + Phi;
-
+    
+    Serial.println("internal variables: ");
+    Serial.print("Psi1 "); Serial.println(Psi1*1000.0);
+    Serial.print("Psi2 "); Serial.println(Psi2*1000.0);
+    
     Offsetx1 = h * MCosPsi1;
     Offsetx2 = h * MCosPsi2;
     Offsety1 = h * MSinPsi1;
     Offsety2 = h * MSinPsi2;
     TanGamma = (y - Offsety1 + Y1Plus)/(x - Offsetx1);
     TanLambda = (y - Offsety2 + Y2Plus)/(D -(x + Offsetx2));
+    
+    Serial.print("y "); Serial.println(y*1000);
+    Serial.print("x "); Serial.println(x*1000);
+    Serial.print("Y1Plus "); Serial.println(Y1Plus*1000);
+    
+    Serial.print("Offsetx1 "); Serial.println(Offsetx1*1000.0);
+    Serial.print("Offsetx2 "); Serial.println(Offsetx2*1000.0);
+    Serial.print("Offsety1 "); Serial.println(Offsety1*1000.0);
+    Serial.print("Offsety2 "); Serial.println(Offsety2*1000.0);
+    Serial.print("TanGamma "); Serial.println(TanGamma*1000.0);
+    Serial.print("TanLambda "); Serial.println(TanLambda*1000.0);
     
     Serial.println("Moment returns: ");
     Serial.println(h3*MSinPhi + (h/(TanLambda+TanGamma))*(MSinPsi2 - MSinPsi1 + (TanGamma*MCosPsi1 - TanLambda * MCosPsi2)));
@@ -300,6 +357,9 @@ float Kinematics::_moment(float Y1Plus, float Y2Plus, float Phi, float MSinPhi, 
 }
 
 void Kinematics::_MyTrig(){
+    
+    Serial.println("\n\nbegin my trig: ");
+    
     float Phisq = Phi * Phi;
     float Phicu = Phi * Phisq;
     float Phidel = Phi + DeltaPhi;
@@ -315,7 +375,25 @@ void Kinematics::_MyTrig(){
     float Psi2del = Psi2 + DeltaPhi;
     float Psi2delsq = Psi2del * Psi2del;
     float Psi2delcu = Psi2del * Psi2delsq;
-
+    
+    Serial.print("Phisq "); Serial.println(Phisq*1000.0);
+    Serial.print("Phicu "); Serial.println(Phicu*1000.0);
+    Serial.print("Phidel "); Serial.println(Phidel*1000.0);
+    Serial.print("Phidelsq "); Serial.println(Phidelsq*1000.0);
+    Serial.print("Phidelcu "); Serial.println(Phidelcu*1000.0);
+    Serial.print("Psi1sq "); Serial.println(Psi1sq*1000.0);
+    Serial.print("Psi1cu "); Serial.println(Psi1cu*1000.0);
+    Serial.print("Psi2sq "); Serial.println(Psi2sq*1000.0);
+    Serial.print("Psi2cu "); Serial.println(Psi2cu*1000.0);
+    Serial.print("Psi1del "); Serial.println(Psi1del*1000.0);
+    Serial.print("Psi1delsq "); Serial.println(Psi1delsq*1000.0);
+    Serial.print("Psi1delcu "); Serial.println(Psi1delcu*1000.0);
+    Serial.print("Psi2del "); Serial.println(Psi2del*1000.0);
+    Serial.print("Psi2delsq "); Serial.println(Psi2delsq*1000.0);
+    Serial.print("Psi2delcu "); Serial.println(Psi2delcu*1000.0);
+    Serial.println("\n\n\n");
+    
+    
     // Phirange is 0 to -27 degrees
     // sin -0.1616   -0.0021    1.0002   -0.0000 (error < 6e-6)
     // cos(phi): 0.0388   -0.5117    0.0012    1.0000 (error < 3e-5)
@@ -338,7 +416,20 @@ void Kinematics::_MyTrig(){
     CosPsi1D = 0.1369*Psi1delcu - 0.6799*Psi1delsq + 0.1077*Psi1del + 0.9756;//cosPsi1
     SinPsi2D = -0.1460*Psi2delcu - 0.0197*Psi2delsq + 1.0068*Psi2del - 0.0008;//sinPsi2
     CosPsi2D = 0.0792*Psi2delcu - 0.5559*Psi2delsq + 0.0171*Psi2del +0.9981;//cosPsi2
-
+    
+    
+    Serial.println("block 2");
+    Serial.print("MySinPhi "); Serial.println(MySinPhi*1000.0);
+    Serial.print("MySinPhiDelta "); Serial.println(MySinPhiDelta*1000.0);
+    Serial.print("SinPsi1 "); Serial.println(SinPsi1*1000.0);
+    Serial.print("CosPsi1 "); Serial.println(CosPsi1*1000.0);
+    Serial.print("SinPsi2 "); Serial.println(SinPsi2*1000.0);
+    Serial.print("CosPsi2 "); Serial.println(CosPsi2*1000.0);
+    Serial.print("SinPsi1D "); Serial.println(SinPsi1D*1000.0);
+    Serial.print("CosPsi1D "); Serial.println(CosPsi1D*1000.0);
+    Serial.print("SinPsi2D "); Serial.println(SinPsi2D*1000.0);
+    Serial.print("CosPsi2D "); Serial.println(CosPsi2D*1000.0);
+    
 }
 
 float Kinematics::_YOffsetEqn(float YPlus, float Denominator, float Psi){
