@@ -143,8 +143,24 @@ void  Kinematics::inverse(float xTarget,float yTarget, float* aChainLength, floa
 
 
         //solve for the next guess
-        Serial.println("original Jac");
-        Serial.println(Jac[0]);
+        
+        float buildOutJac = _moment( Y1Plus + DeltaY, Y2Plus, Phi, MySinPhi, SinPsi1, CosPsi1, SinPsi2, CosPsi2);
+        
+        Serial.println("\n\n++++++++++++++++++++++++++++++++++");
+        Serial.print("Build out Jac[1]: "); Serial.println(buildOutJac*1000.0);
+        Serial.print("Crit[0] "); Serial.println(Crit[0]*1000.0);
+        Serial.print("Jac[0] "); Serial.println(Jac[0]*1000.0);
+        Serial.print("Jac[1] "); Serial.println(Jac[1]*1000.0);
+        Serial.print("Jac[2] "); Serial.println(Jac[2]*1000.0);
+        Serial.print("Jac[3] "); Serial.println(Jac[3]*1000.0);
+        Serial.print("Jac[4] "); Serial.println(Jac[4]*1000.0);
+        Serial.print("Jac[5] "); Serial.println(Jac[5]*1000.0);
+        Serial.print("Jac[6] "); Serial.println(Jac[6]*1000.0);
+        Serial.print("Jac[7] "); Serial.println(Jac[7]*1000.0);
+        Serial.print("Jac[8] "); Serial.println(Jac[8]*1000.0);
+        
+        
+        
         _MatSolv();     // solves the matrix equation Jx=-Criterion
 
         // update the variables with the new estimate
@@ -264,6 +280,8 @@ void  Kinematics::_MatSolv(){
     float fact;
 
     // gaus elimination, no pivot
+    
+    Serial.println("\n\ngaus elimination");
     Serial.println("Jac: ");
     Serial.println(Jac[0]);
     
@@ -286,17 +304,35 @@ void  Kinematics::_MatSolv(){
 
 //Lower triangular matrix solver
     
+    Serial.println("\n\nLower triangular matrix solver");
+    
+    
     Solution[0] =  Crit[0]/Jac[0];
     ii = N-1;
+    
+    Serial.print("Solution[0] "); Serial.println(Solution[0]*1000.0);
+    Serial.print("Crit[0] "); Serial.println(Crit[0]*1000.0);
+    Serial.print("Crit[1] "); Serial.println(Crit[1]*1000.0);
+    Serial.print("Crit[2] "); Serial.println(Crit[2]*1000.0);
+    Serial.print("ii "); Serial.println(ii);
+    Serial.print("N "); Serial.println(N);
+    
     for (i=2;i<=N;i++){
+        Serial.print("outer loop i:"); Serial.println(i);
         M = i -1;
         Sum = Crit[i-1];
+        Serial.print("Sum "); Serial.println(Sum*1000.0);
         for (J=1;J<=M;J++){
+            Serial.print("inner loop J:"); Serial.println(J);
             Sum = Sum-Jac[ii+J]*Solution[J-1];
+            Serial.print("Sum "); Serial.println(Sum*1000.0);
         }
-    Serial.println("Thas: ");
-    Serial.println(ii+i);
-    Serial.println(Sum/Jac[ii+i]);
+    
+    
+    Serial.println("\nEnd Mat Solve: ----------------------------------------------------------");
+    Serial.print("ii+i "); Serial.println(ii+i);
+    Serial.print("Sum "); Serial.println(Sum*1000.0);
+    Serial.print("Jac[ii+i] "); Serial.println(Jac[ii+i]*1000.0);
     Solution[i-1] = Sum/Jac[ii+i];
     ii = ii + N;
     }
@@ -339,8 +375,8 @@ float Kinematics::_moment(float Y1Plus, float Y2Plus, float Phi, float MSinPhi, 
     TanGamma = (y - Offsety1 + Y1Plus)/(x - Offsetx1);
     TanLambda = (y - Offsety2 + Y2Plus)/(D -(x + Offsetx2));
     
-    Serial.print("y "); Serial.println(y*1000);
-    Serial.print("x "); Serial.println(x*1000);
+    Serial.print("x "); Serial.println(x);
+    Serial.print("y "); Serial.println(y);
     Serial.print("Y1Plus "); Serial.println(Y1Plus*1000);
     
     Serial.print("Offsetx1 "); Serial.println(Offsetx1*1000.0);
@@ -350,8 +386,11 @@ float Kinematics::_moment(float Y1Plus, float Y2Plus, float Phi, float MSinPhi, 
     Serial.print("TanGamma "); Serial.println(TanGamma*1000.0);
     Serial.print("TanLambda "); Serial.println(TanLambda*1000.0);
     
+    Serial.println("\n\n\n moment buildout: ");
+    Serial.println((h3*MSinPhi)*1000.0);//(MSinPsi2 - MSinPsi1 + (TanGamma*MCosPsi1 - TanLambda * MCosPsi2))*10000.0);
+    
     Serial.println("Moment returns: ");
-    Serial.println(h3*MSinPhi + (h/(TanLambda+TanGamma))*(MSinPsi2 - MSinPsi1 + (TanGamma*MCosPsi1 - TanLambda * MCosPsi2)));
+    Serial.println((h3*MSinPhi + (h/(TanLambda+TanGamma))*(MSinPsi2 - MSinPsi1 + (TanGamma*MCosPsi1 - TanLambda * MCosPsi2)))*1000.0);
     
     return h3*MSinPhi + (h/(TanLambda+TanGamma))*(MSinPsi2 - MSinPsi1 + (TanGamma*MCosPsi1 - TanLambda * MCosPsi2));
 }
